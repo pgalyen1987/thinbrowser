@@ -52,3 +52,26 @@ test("a server outlived by its own package says so", async () => {
     await client.close();
   }
 });
+
+// The plugin manifests carry their own copy of the version and the headline ratio, and a copy that
+// nothing checks is a copy that drifts: plugin.json sat at 0.7.0 for two releases, and both
+// manifests still advertised "37x less page" long after the benchmark reached 44x — underselling
+// the product on the two surfaces a buyer actually reads.
+test("the plugin manifests match the package they ship", () => {
+  const read = (f) => JSON.parse(readFileSync(join(import.meta.dirname, "..", f), "utf8"));
+  const pkg = read("package.json");
+  const plugin = read(".claude-plugin/plugin.json");
+  const market = read(".claude-plugin/marketplace.json");
+  assert.equal(plugin.version, pkg.version, "plugin.json version is behind package.json");
+  const listed = market.plugins.find((p) => p.name === plugin.name);
+  assert.ok(listed, "marketplace.json does not list this plugin");
+  assert.equal(listed.version, pkg.version, "marketplace.json version is behind package.json");
+  assert.equal(listed.description, plugin.description, "the two listings describe the plugin differently");
+
+  // The ratio in the copy has to be the one the README publishes, rounded.
+  const readme = readFileSync(join(import.meta.dirname, "../README.md"), "utf8");
+  const claimed = Number((readme.match(/on five live pages:\s*([\d.]+)x/s) || [])[1]);
+  assert.ok(claimed, "README no longer states the benchmark ratio");
+  const advertised = Number((plugin.description.match(/(\d+)x less page/) || [])[1]);
+  assert.equal(advertised, Math.round(claimed), `the listing advertises ${advertised}x but the README measures ${claimed}x`);
+});

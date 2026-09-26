@@ -10,7 +10,7 @@
     {
       "name": "agent-browser",
       "displayName": "Agent Browser",
-      "description": "Drives a real browser for an agent and hands back 37x less page. Compact snapshots instead of whole-page accessibility dumps \u2014 measured against what Playwright's MCP server sends, and reproducible with the bundled benchmark. Clicks survive cookie bars, credentials never reach the transcript, the console and network log say what a page actually did, and a bot wall is named instead of arriving as a page with nothing on it.",
+      "description": "Drives a real browser for an agent and hands back 44x less page. Compact snapshots instead of whole-page accessibility dumps \u2014 measured against what Playwright's MCP server sends, and reproducible with the bundled benchmark. Clicks survive cookie bars, credentials never reach the transcript, the console and network log say what a page actually did, and a bot wall is named instead of arriving as a page with nothing on it.",
       "version": "0.7.2",
       "author": {
         "name": "Rebel Studios",
