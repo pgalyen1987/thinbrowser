@@ -26,6 +26,7 @@
 //
 //   node bench/compare.mjs            the default page set
 //   node bench/compare.mjs <url>...   your own pages
+import { readFileSync } from "node:fs";
 import { chromium } from "playwright";
 import * as ab from "../src/browser.mjs";
 
@@ -111,4 +112,27 @@ if (ok.length) {
   console.log(`time   ${secs(ariaMs)} vs ${secs(oursMs)} for ${ok.length} pages — ${(ariaMs / oursMs).toFixed(1)}x ${ariaMs > oursMs ? "faster" : "SLOWER"}.`);
   if (rows.some((r) => r.ariaTimedOut)) console.log(`       * networkidle never arrived; that page waited out its 20s cap.`);
   console.log(`\nMeasured ${new Date().toISOString().slice(0, 10)}. Live pages change, so re-run it rather than trusting this line.`);
+
+  // DOES THE README STILL TELL THE TRUTH? The ratio is quoted in the README, on the landing page and
+  // in the store listing, all hand-copied, and hand-copied numbers drift: the headline said 44.3x
+  // and the changelog said 44.1x for the same measurement, because each was written on a different
+  // day and nothing compared them. Printing the measurement and leaving a human to notice is the
+  // process that already failed, so the benchmark now reads the published figure back out of the
+  // README and says whether it still holds.
+  //
+  // It does not fail the build. A Wikipedia edit is not a regression, and a benchmark that goes red
+  // because someone added a paragraph to a page we do not own would be turned off within a week.
+  const readme = new URL("../README.md", import.meta.url);
+  const claimed = Number((readFileSync(readme, "utf8").match(/on five live pages:\s*([\d.]+)x/s) || [])[1]);
+  if (claimed) {
+    const measured = aria / ours;
+    const drift = Math.abs(measured - claimed) / claimed;
+    console.log(
+      drift <= 0.02
+        ? `claim   README says ${claimed}x, measured ${measured.toFixed(1)}x — still true.`
+        : `claim   README says ${claimed}x but this run measured ${measured.toFixed(1)}x (${(drift * 100).toFixed(0)}% off).\n        Update the README, the landing page and the store listing, or explain the gap.`,
+    );
+  } else {
+    console.log(`claim   could not find the published ratio in README.md — check that the headline still states one.`);
+  }
 }

@@ -9,11 +9,36 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import * as b from "./browser.mjs";
+import { readFileSync } from "node:fs";
 
-const server = new McpServer({ name: "agent-browser", version: "0.7.2" });
+// The version comes from package.json rather than a string typed here, which had already drifted a
+// release behind by the time anyone noticed.
+const pkgPath = new URL("../package.json", import.meta.url);
+const readVersion = () => { try { return JSON.parse(readFileSync(pkgPath, "utf8")).version; } catch { return null; } };
+
+// AN MCP SERVER OUTLIVES ITS OWN SOURCE, and that is worth saying out loud because it cost us a
+// whole session. The client starts this process once and keeps it; upgrading the package rewrites
+// the files on disk but the running process keeps the modules it imported at startup. So an agent
+// goes on calling code from before the upgrade, gets the old behaviour, and nothing anywhere says
+// so -- found by dogfooding, where a server started three hours before the diff feature landed
+// answered every action with a full snapshot and looked like a bug in the feature.
+//
+// Detecting it is cheap: the version imported at startup is frozen in this process, while
+// package.json on disk moves with the upgrade. If they differ, this process is stale.
+// Checked on every call, not on a timer: reading one small JSON file is nothing beside the browser
+// round trip each of these tools already makes, and a cache here only bought a slower test.
+const LOADED = readVersion();
+function staleness() {
+  const onDisk = readVersion();
+  return onDisk && LOADED && onDisk !== LOADED
+    ? `note: this server is running agent-browser ${LOADED} but ${onDisk} is installed — restart your MCP client to pick it up.\n\n`
+    : "";
+}
+
+const server = new McpServer({ name: "agent-browser", version: LOADED ?? "0.0.0" });
 const text = (s) => ({ content: [{ type: "text", text: String(s) }] });
 const safe = (fn) => async (args) => {
-  try { return text(await fn(args || {})); } catch (e) { return { ...text(`error: ${String(e.message || e).split("\n")[0]}`), isError: true }; }
+  try { return text(staleness() + (await fn(args || {}))); } catch (e) { return { ...text(`error: ${String(e.message || e).split("\n")[0]}`), isError: true }; }
 };
 const target = z.string().describe('A ref from a snapshot ("e12") or a description: \'button "Next"\', \'link Pricing\', a field label, or visible text');
 
