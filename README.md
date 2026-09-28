@@ -6,7 +6,7 @@ A browser an agent can actually drive, as an MCP tool set over Playwright.
 
 [rebelstudiossoftware.com/agent-browser.html](https://rebelstudiossoftware.com/agent-browser.html)
 
-**Measured against what Playwright's own MCP server sends a model, on five live pages: 44.1x
+**Measured against what Playwright's own MCP server sends a model, on five live pages: 43.5x
 smaller.** One Wikipedia article is 241,988 characters there and 3,877 here. It is also somewhat
 faster — 1.4x to 1.7x across runs — but that half depends on the network and does not reproduce to
 a fixed number, so the size figure is the one to hold us to. Run `npm run bench` and check it
@@ -47,7 +47,7 @@ Each row is a thing that cost us time first, then got a tool.
 
 | Friction | What it does instead |
 | --- | --- |
-| Whole-page accessibility dumps flood the context | `snapshot`/`open` return a compact outline: headings, forms and dialogs as groups, each interactive element as `[e12] button "Next" (disabled)`, navigation and footers collapsed to six links and a count, then 400 characters of page text. Measured 44.1x smaller than the snapshot Playwright's MCP server sends (1.5x to 62.8x per page); `npm run bench` reproduces it. |
+| Whole-page accessibility dumps flood the context | `snapshot`/`open` return a compact outline: headings, forms and dialogs as groups, each interactive element as `[e12] button "Next" (disabled)`, navigation and footers collapsed to six links and a count, then 400 characters of page text. Measured 43.5x smaller than the snapshot Playwright's MCP server sends (2.6x to 63.2x per page); `npm run bench` reproduces it. |
 | Element refs go stale after a re-render | Refs live on the element (`data-ab`), so a button keeps `e12` across snapshots for as long as it exists. Targets can also be `'button "Next"'` or a field label. |
 | Cookie bars and chat bubbles intercept clicks | `click` scrolls to the target, checks what is actually on top of it, presses the overlay's Accept/Close button or hides the layer, and says which. |
 | Two things on the page share a name | `click` acts on the first and **says** it had a choice, with where the others are. Silence here is how a click meant for a wizard's submit button reopens a sidebar instead. |
@@ -82,7 +82,7 @@ Source tells you what a page might do. The network log tells you what it did.
 
 ## How it compares, including where it loses
 
-Against Playwright's MCP server — the default an agent is handed — it is **44.1x smaller** across
+Against Playwright's MCP server — the default an agent is handed — it is **43.5x smaller** across
 five live pages. That number is large because Playwright's format is verbose, not because this is
 magic, so here is the closer comparison too.
 
