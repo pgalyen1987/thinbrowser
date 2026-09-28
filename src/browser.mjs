@@ -587,10 +587,87 @@ export async function locate(target) {
   return null;
 }
 
+/**
+ * How much of a page is actually THERE right now: visible interactive controls, and how much text.
+ * Cheap enough to call on a miss, and it is what separates "no such button" from "nothing has
+ * rendered yet", which read identically to a caller and are opposite instructions.
+ */
+async function pageSubstance(p) {
+  return p.evaluate(() => {
+    const vis = (el) => {
+      const r = el.getBoundingClientRect();
+      if (!r.width || !r.height) return false;
+      const cs = getComputedStyle(el);
+      return cs.visibility !== "hidden" && cs.display !== "none" && cs.opacity !== "0";
+    };
+    const controls = [...document.querySelectorAll(
+      'a,button,input,select,textarea,[role="button"],[role="link"],[role="textbox"],[contenteditable="true"]')]
+      .filter(vis).length;
+    const text = (document.body?.innerText || "").trim().length;
+    // The usual "still working" tells, so a spinner is not mistaken for a finished empty page.
+    const busy = Boolean(
+      document.querySelector('[aria-busy="true"],[role="progressbar"],.loading,.spinner,.skeleton')
+      || /\bloading\b|\bplease wait\b/i.test((document.body?.innerText || "").slice(0, 400)));
+    return { controls, text, busy };
+  }).catch(() => ({ controls: 0, text: 0, busy: false }));
+}
+
+/** A page with almost nothing on it has not finished, whatever the load event said. */
+const looksUnrendered = (s) => s.busy || (s.controls <= 2 && s.text < 120);
+
+/**
+ * locate(), but a miss is investigated rather than reported flat.
+ *
+ * WHY. A miss has two causes that look identical and mean opposite things: the element is not on
+ * this page, or the page has not drawn it yet. Single-page apps produce the second constantly --
+ * the content arrives after navigation has long since settled. Treating that as "not there" is the
+ * expensive direction: it cost a real duplicate-send scare on 2026-09-28, where a Gmail Sent
+ * search rendered zero rows and the honest answer "I cannot tell" was reported as "it did not
+ * send".
+ *
+ * So: on a miss, if the page looks unrendered, wait for it and try again; and either way record
+ * WHICH of the two it was, so the reply can say "not on this page" or "the page had not rendered".
+ */
+export async function locateOrExplain(target, { waitMs = 4000 } = {}) {
+  let loc = await locate(target).catch(() => null);
+  if (loc) return loc;
+  const p = await session();
+  let sub = await pageSubstance(p);
+  if (looksUnrendered(sub)) {
+    const end = Date.now() + waitMs;
+    while (Date.now() < end) {
+      await p.waitForTimeout(250);
+      loc = await locate(target).catch(() => null);
+      if (loc) { lastMiss = null; return loc; }
+      sub = await pageSubstance(p);
+      if (!looksUnrendered(sub)) break;        // it filled in, and the target still is not there
+    }
+    loc = await locate(target).catch(() => null);
+    if (loc) { lastMiss = null; return loc; }
+  }
+  lastMiss = looksUnrendered(sub)
+    ? `the page still looks unrendered after waiting (${sub.controls} visible controls, `
+      + `${sub.text} chars of text${sub.busy ? ", and it reports itself busy" : ""}), so this is `
+      + `"cannot tell yet", NOT "not present" -- do not conclude the thing is absent`
+    : `the page is populated (${sub.controls} visible controls, ${sub.text} chars) and still has `
+      + `no match, so it is genuinely not on this page`;
+  return null;
+}
+
 // Set by locate() when a target was ambiguous; drained by whatever acted, so the reply can admit
 // that it picked one of several rather than leaving the caller to find out from the result.
 let lastAmbiguity = null;
 export const takeAmbiguity = () => { const a = lastAmbiguity; lastAmbiguity = null; return a; };
+
+// Set by locateOrExplain() when nothing matched, saying WHICH kind of miss it was.
+let lastMiss = null;
+export const takeMiss = () => { const m = lastMiss; lastMiss = null; return m; };
+
+/** Formats the miss reason for a reply, or nothing when there is none to add. */
+function missNote() {
+  const m = takeMiss();
+  return m ? `\n  (${m})` : "";
+}
 
 /**
  * How an element is named in replies: its label, never a field's value. (A value can be a secret
@@ -715,8 +792,8 @@ async function after(p, before, notes, { snap = true } = {}) {
 export async function click(target, opts = {}) {
   const p = await session();
   acceptNextConfirm = !!opts.confirm;
-  const loc = await locate(target);
-  if (!loc) return `no visible element matches ${JSON.stringify(target)}\n\n${await snapshot({ find: /^e\d+$/.test(target) ? "" : String(target).split(/\s+/).pop(), limit: 20 })}`;
+  const loc = await locateOrExplain(target);
+  if (!loc) return `no visible element matches ${JSON.stringify(target)}${missNote()}\n\n${await snapshot({ find: /^e\d+$/.test(target) ? "" : String(target).split(/\s+/).pop(), limit: 20 })}`;
   const what = await describe(loc);
   const ambiguous = takeAmbiguity();
   if (await loc.isDisabled().catch(() => false)) return `${what} is disabled`;
@@ -767,8 +844,8 @@ export async function fill(target, value, { submit = false, fields = null } = {}
     return after(p, before, [...lines, "pressed Enter"]);
   }
 
-  const loc = await locate(target);
-  if (!loc) return `no visible field matches ${JSON.stringify(target)}`;
+  const loc = await locateOrExplain(target);
+  if (!loc) return `no visible field matches ${JSON.stringify(target)}${missNote()}`;
   await clearPath(p, loc);
   await loc.fill(String(value));
   const what = await describe(loc);
@@ -791,8 +868,8 @@ export async function fillSecret(target, key) {
   const value = secretValue(key);
   if (value == null) return `no ${key} in the creds store`;
   const p = await session();
-  const loc = await locate(target);
-  if (!loc) return `no visible field matches ${JSON.stringify(target)}`;
+  const loc = await locateOrExplain(target);
+  if (!loc) return `no visible field matches ${JSON.stringify(target)}${missNote()}`;
   await clearPath(p, loc);
   await loc.evaluate((el) => { el.dataset.abSecret = "1"; });
   await loc.fill(value);
@@ -801,8 +878,8 @@ export async function fillSecret(target, key) {
 
 export async function select(target, option) {
   const p = await session();
-  const loc = await locate(target);
-  if (!loc) return `no visible dropdown matches ${JSON.stringify(target)}`;
+  const loc = await locateOrExplain(target);
+  if (!loc) return `no visible dropdown matches ${JSON.stringify(target)}${missNote()}`;
   const native = await loc.evaluate((el) => el.tagName === "SELECT").catch(() => false);
   if (native) {
     const picked = await loc.selectOption({ label: option }).catch(() => loc.selectOption(option)).catch((e) => e);
@@ -834,7 +911,7 @@ export async function select(target, option) {
 export async function upload(target, paths) {
   const p = await session();
   let loc = await locate(target);
-  if (!loc) return `no visible element matches ${JSON.stringify(target)}`;
+  if (!loc) return `no visible element matches ${JSON.stringify(target)}${missNote()}`;
   const isFile = await loc.evaluate((el) => el.tagName === "INPUT" && el.type === "file").catch(() => false);
   if (!isFile) {
     // a styled button: the real input is usually hidden next to it, or opens a chooser on click
@@ -866,7 +943,7 @@ export async function wait(target, { gone = false, timeout = 10000 } = {}) {
   const p = await session();
   const end = Date.now() + timeout;
   const present = async () => {
-    const loc = await locate(target).catch(() => null);
+    const loc = await locateOrExplain(target).catch(() => null);
     return !!loc;
   };
   while (Date.now() < end) {
