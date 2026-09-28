@@ -35,7 +35,7 @@ const textOf = (r) => (r.content || []).filter((c) => c.type === "text").map((c)
 
 before(async () => {
   proc = spawn("node", [join(import.meta.dirname, "..", "src", "server.mjs")], {
-    env: { ...process.env, AB_EPHEMERAL: "1", AB_CREDS: credsPath },
+    env: { ...process.env, TB_EPHEMERAL: "1", TB_CREDS: credsPath },
     stdio: ["pipe", "pipe", "pipe"],
   });
   // stdout is the protocol channel and nothing else may appear on it — that is itself under test.

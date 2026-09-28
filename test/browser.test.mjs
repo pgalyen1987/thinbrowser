@@ -1,4 +1,4 @@
-// Each friction point from the notes (agent-browser-idea), checked against a local page.
+// Each friction point from the notes (thinbrowser-idea), checked against a local page.
 import test, { after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync } from "node:fs";
@@ -7,9 +7,9 @@ import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const dir = mkdtempSync(join(tmpdir(), "ab-"));
-process.env.AB_EPHEMERAL = "1";
-process.env.AB_CREDS = join(dir, "creds.env");
-writeFileSync(process.env.AB_CREDS, 'OTHER=1\nexport FAKE_API_KEY="sk-super-secret-9f8e"\n');
+process.env.TB_EPHEMERAL = "1";
+process.env.TB_CREDS = join(dir, "creds.env");
+writeFileSync(process.env.TB_CREDS, 'OTHER=1\nexport FAKE_API_KEY="sk-super-secret-9f8e"\n');
 const b = await import("../src/browser.mjs");
 const page = (name, q = "") => pathToFileURL(join(import.meta.dirname, "fixtures", name)).href + q;
 after(() => b.close());
@@ -308,11 +308,11 @@ test("a wall named only in the page TITLE is still caught", async () => {
 });
 
 test("solve refuses honestly when it cannot help, rather than pretending", async () => {
-  // The tests run with AB_EPHEMERAL=1, where clearing a challenge buys nothing that survives —
+  // The tests run with TB_EPHEMERAL=1, where clearing a challenge buys nothing that survives —
   // so it says that instead of opening a window and wasting someone's time on it.
   await b.open(page("blocked.html"));
   const out = await b.solve({ seconds: 1 });
-  assert.match(out, /AB_EPHEMERAL=1 throws the profile away/);
+  assert.match(out, /TB_EPHEMERAL=1 throws the profile away/);
 });
 
 test("read gives the page as prose, without the navigation", async () => {

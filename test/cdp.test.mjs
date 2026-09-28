@@ -1,6 +1,6 @@
 // Attaching to a browser this tool did not launch.
 //
-// WHY THIS DESERVES ITS OWN FILE. AB_CDP is the answer to every site that will not accept an
+// WHY THIS DESERVES ITS OWN FILE. TB_CDP is the answer to every site that will not accept an
 // automated browser — Play Console, Google Groups, anything behind Cloudflare's strict mode — so it
 // is the most load-bearing thing here, and it shipped with no test at all because it was built
 // last. That is backwards.
@@ -22,7 +22,7 @@ let skip = false;
 
 before(async () => {
   // CDP is a CHROMIUM protocol — this file tests attaching, not the engine under test, so it needs
-  // a Chromium however AB_BROWSER is set. Where there is not one, skip loudly rather than fail:
+  // a Chromium however TB_BROWSER is set. Where there is not one, skip loudly rather than fail:
   // four red tests about a missing binary look exactly like a broken feature.
   try {
     theirBrowser = await chromium.launch({ args: [`--remote-debugging-port=${PORT}`] });
@@ -33,13 +33,13 @@ before(async () => {
   }
   theirPage = await theirBrowser.newPage();
   await theirPage.goto(fixture);   // a tab of "theirs", open before we arrive
-  process.env.AB_CDP = String(PORT);
-  delete process.env.AB_EPHEMERAL; // attaching ignores it, but keep the intent explicit
+  process.env.TB_CDP = String(PORT);
+  delete process.env.TB_EPHEMERAL; // attaching ignores it, but keep the intent explicit
   ab = await import("../src/browser.mjs");
 });
 
 after(async () => {
-  delete process.env.AB_CDP;
+  delete process.env.TB_CDP;
   await theirBrowser?.close().catch(() => {});
 });
 
@@ -85,7 +85,7 @@ test("a dead endpoint fails in words a caller can act on", async (t) => {
   // The common way to get this wrong is to forget the flag on the browser, so the failure has to
   // name the endpoint rather than arrive as a bare stack trace.
   //
-  // AB_CDP is read once at module load, so changing it here would not take effect — the honest
+  // TB_CDP is read once at module load, so changing it here would not take effect — the honest
   // check is against the function that does the connecting.
   const { chromium: pw } = await import("playwright");
   const err = await pw.connectOverCDP("http://127.0.0.1:9499").then(() => null, (e) => e.message);

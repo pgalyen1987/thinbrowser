@@ -35,7 +35,7 @@ for (const f of files) {
   console.log(`\n── ${f} ${"─".repeat(Math.max(0, 60 - f.length))}`);
   const r = spawnSync(process.execPath, [join(here, f)], {
     stdio: "inherit",
-    env: process.env, // AB_BROWSER etc. pass straight through
+    env: process.env, // TB_BROWSER etc. pass straight through
     timeout: PER_FILE_TIMEOUT_MS,
     killSignal: "SIGKILL",
   });

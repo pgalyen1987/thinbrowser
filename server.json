@@ -1,0 +1,63 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.pgalyen1987/thinbrowser",
+  "description": "A browser an agent can drive. 43.5x smaller snapshots than Playwright MCP, reproducible.",
+  "repository": {
+    "url": "https://github.com/pgalyen1987/thinbrowser",
+    "source": "github"
+  },
+  "version": "0.7.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@rebelstudios/thinbrowser",
+      "version": "0.7.2",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "TB_CDP",
+          "description": "Attach to a browser that is already running and already signed in, instead of launching a fresh one. A port (9224) or a full URL.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_HEADED",
+          "description": "Set to 1 to watch the window while it works. Headless otherwise.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_BROWSER",
+          "description": "chromium (default) or firefox. Both pass the full test suite; WebKit is untested.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_CHANNEL",
+          "description": "Set to chrome to use installed Google Chrome rather than Playwright's bundled Chromium.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_PROFILE",
+          "description": "Where the browser profile lives. Default ~/.cache/thinbrowser/profile.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_EPHEMERAL",
+          "description": "Set to 1 for a throwaway context that keeps nothing between runs.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_DOWNLOADS",
+          "description": "Where downloads land. Default ~/.cache/thinbrowser/downloads.",
+          "isRequired": false
+        },
+        {
+          "name": "TB_CREDS",
+          "description": "Path to the env file fill_secret reads, so a password reaches the page without passing through the model. Default ~/.config/rebel-studios/creds.env.",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
+}

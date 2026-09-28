@@ -8,23 +8,23 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { collect, render } from "./snapshot.mjs";
 
-const PROFILE = process.env.AB_PROFILE || join(homedir(), ".cache/agent-browser/profile");
-// AB_BROWSER picks the engine. Chromium is the default because it is what most sites are built
+const PROFILE = process.env.TB_PROFILE || join(homedir(), ".cache/thinbrowser/profile");
+// TB_BROWSER picks the engine. Chromium is the default because it is what most sites are built
 // against and what CDP attach needs, but nothing here is Chromium-specific: the snapshot runs in
 // the page, and every action goes through Playwright's own API.
 const ENGINES = { chromium, firefox, webkit };
-// AB_CHANNEL="chrome" launches the REAL Google Chrome that is installed, rather than the Chromium
+// TB_CHANNEL="chrome" launches the REAL Google Chrome that is installed, rather than the Chromium
 // build Playwright ships. That is not a disguise - it is a genuinely different, genuinely normal
 // browser - and it matters because Cloudflare's strict mode rejects Playwright's build outright,
 // looping its challenge forever so that even a human at a visible window cannot clear it.
-const CHANNEL = process.env.AB_CHANNEL || null;
-const ENGINE_NAME = (process.env.AB_BROWSER || "chromium").toLowerCase();
+const CHANNEL = process.env.TB_CHANNEL || null;
+const ENGINE_NAME = (process.env.TB_BROWSER || "chromium").toLowerCase();
 const ENGINE = ENGINES[ENGINE_NAME] || chromium;
-const CREDS = process.env.AB_CREDS || join(homedir(), ".config/rebel-studios/creds.env");
+const CREDS = process.env.TB_CREDS || join(homedir(), ".config/rebel-studios/creds.env");
 // Downloads have to be accepted and given somewhere to go, or Playwright throws them away and a
 // click on "Export" looks like it did nothing.
-const DOWNLOAD_DIR = process.env.AB_DOWNLOADS || join(homedir(), ".cache/agent-browser/downloads");
-// AB_CDP drives a browser that is ALREADY RUNNING AND ALREADY SIGNED IN, instead of launching a
+const DOWNLOAD_DIR = process.env.TB_DOWNLOADS || join(homedir(), ".cache/thinbrowser/downloads");
+// TB_CDP drives a browser that is ALREADY RUNNING AND ALREADY SIGNED IN, instead of launching a
 // fresh one. This is the difference between being able to work someone's Play Console, Google
 // Groups or Kaggle and not: those need a real session, and automating the login is neither
 // possible (2FA) nor something to do on someone's behalf.
@@ -32,8 +32,8 @@ const DOWNLOAD_DIR = process.env.AB_DOWNLOADS || join(homedir(), ".cache/agent-b
 // Set it to a port or a full URL. The browser has to have been started with the matching flag:
 //   google-chrome --remote-debugging-port=9224
 // cli/attach.mjs did this for one-off scripts; this makes every tool work the same way.
-const CDP = process.env.AB_CDP ? (/^\d+$/.test(process.env.AB_CDP)
-  ? `http://127.0.0.1:${process.env.AB_CDP}` : process.env.AB_CDP) : null;
+const CDP = process.env.TB_CDP ? (/^\d+$/.test(process.env.TB_CDP)
+  ? `http://127.0.0.1:${process.env.TB_CDP}` : process.env.TB_CDP) : null;
 let attached = false; // when true, close() detaches and leaves the owner's browser running
 const downloaded = [];
 
@@ -53,7 +53,7 @@ let netLog = [];
 // drops the Request, the mapping goes with it.
 let netIndex = new WeakMap();
 
-/** A persistent context, so a login made once survives between sessions. Headless unless AB_HEADED=1. */
+/** A persistent context, so a login made once survives between sessions. Headless unless TB_HEADED=1. */
 export async function session({ fresh = false } = {}) {
   if (ctx && !fresh) {
     // A CONTEXT CAN DIE UNDER US and the old code handed the dead handle back regardless, so
@@ -73,7 +73,7 @@ export async function session({ fresh = false } = {}) {
     }
   }
   if (ctx && !attached) await ctx.close().catch(() => {});
-  const opts = { headless: process.env.AB_HEADED !== "1", viewport: { width: 1280, height: 900 }, acceptDownloads: true };
+  const opts = { headless: process.env.TB_HEADED !== "1", viewport: { width: 1280, height: 900 }, acceptDownloads: true };
   if (CHANNEL && ENGINE_NAME === "chromium") opts.channel = CHANNEL;
 
   if (CDP) {
@@ -97,7 +97,7 @@ export async function session({ fresh = false } = {}) {
     return page;
   }
 
-  if (process.env.AB_EPHEMERAL === "1") {
+  if (process.env.TB_EPHEMERAL === "1") {
     browser = await ENGINE.launch({ headless: opts.headless });
     ctx = await browser.newContext({ viewport: opts.viewport });
   } else {
@@ -288,22 +288,22 @@ export async function solve({ seconds = 180 } = {}) {
   const p = await session();
   const url = p.url();
   if (!url || url === "about:blank") return "no page open to solve";
-  if (process.env.AB_EPHEMERAL === "1") {
-    return "AB_EPHEMERAL=1 throws the profile away, so solving a challenge here buys nothing that survives. Unset it and try again.";
+  if (process.env.TB_EPHEMERAL === "1") {
+    return "TB_EPHEMERAL=1 throws the profile away, so solving a challenge here buys nothing that survives. Unset it and try again.";
   }
   if (!process.env.DISPLAY && process.platform === "linux") {
-    return "no DISPLAY, so a window cannot be shown. Run this where there is a desktop, or attach to a browser you are already signed into with AB_CDP.";
+    return "no DISPLAY, so a window cannot be shown. Run this where there is a desktop, or attach to a browser you are already signed into with TB_CDP.";
   }
   if (attached) return "already driving your own browser — clear the challenge in the window you can see, then carry on.";
 
   // Relaunch visible, on the same persistent profile, at the same page.
-  const wasHeaded = process.env.AB_HEADED;
-  process.env.AB_HEADED = "1";
+  const wasHeaded = process.env.TB_HEADED;
+  process.env.TB_HEADED = "1";
   // Not just visible - a REAL browser. Cloudflare's strict mode loops its challenge against
   // Playwright's Chromium build however long a human stares at it, so a visible window alone is
   // not enough. Measured on claude.ai: 170 seconds of a person clicking, still challenged.
-  const wasChannel = process.env.AB_CHANNEL;
-  if (!wasChannel && ENGINE_NAME === "chromium") process.env.AB_CHANNEL = "chrome";
+  const wasChannel = process.env.TB_CHANNEL;
+  if (!wasChannel && ENGINE_NAME === "chromium") process.env.TB_CHANNEL = "chrome";
   try {
     await close();
     const q = await session();
@@ -332,13 +332,13 @@ export async function solve({ seconds = 180 } = {}) {
       `in, where the site has already cleared you:`,
       ``,
       `  1. close Chrome, then start it with:  google-chrome --remote-debugging-port=9224`,
-      `  2. run this tool with:                AB_CDP=9224`,
+      `  2. run this tool with:                TB_CDP=9224`,
       ``,
       `Every tool then drives that session, and close() detaches instead of shutting your browser.`,
     ].join("\n");
   } finally {
-    if (wasHeaded === undefined) delete process.env.AB_HEADED; else process.env.AB_HEADED = wasHeaded;
-    if (wasChannel === undefined) delete process.env.AB_CHANNEL; else process.env.AB_CHANNEL = wasChannel;
+    if (wasHeaded === undefined) delete process.env.TB_HEADED; else process.env.TB_HEADED = wasHeaded;
+    if (wasChannel === undefined) delete process.env.TB_CHANNEL; else process.env.TB_CHANNEL = wasChannel;
   }
 }
 

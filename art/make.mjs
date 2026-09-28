@@ -86,7 +86,7 @@ function banner(w = 1280, h = 640) {
   <rect width="${w}" height="${h}" fill="${INK}"/>
   <g transform="translate(${Math.round(w * 0.072)}, ${Math.round((h - s) / 2)})">${inner}</g>
   <g transform="translate(${Math.round(w * 0.072 + s + w * 0.045)}, ${Math.round(h / 2)})" font-family="IBM Plex Sans, Segoe UI, Helvetica, Arial, sans-serif">
-    <text x="0" y="-58" fill="${PAPER}" font-size="62" font-weight="600" letter-spacing="-1.6">agent-browser</text>
+    <text x="0" y="-58" fill="${PAPER}" font-size="62" font-weight="600" letter-spacing="-1.6">thinbrowser</text>
     <text x="0" y="6" fill="${SIGNAL}" font-size="40" font-weight="500" letter-spacing="-0.6">37&#215; less page, same answer</text>
     <text x="0" y="62" fill="#93A1A9" font-size="26" font-weight="400">A browser an agent can actually drive. MCP, any client.</text>
     <text x="0" y="104" fill="#6B7880" font-size="21" font-family="IBM Plex Mono, ui-monospace, monospace">246,434 chars &#8594; 4,557 &#183; measured, reproducible</text>

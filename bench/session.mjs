@@ -11,7 +11,7 @@
 //   node bench/session.mjs
 import * as ab from "../src/browser.mjs";
 
-process.env.AB_EPHEMERAL = "1";
+process.env.TB_EPHEMERAL = "1";
 
 // TWO TASKS, because the saving depends entirely on how much the page moves and one number would
 // hide that. Filling a form is the common shape of agent work -- each step changes one line out of

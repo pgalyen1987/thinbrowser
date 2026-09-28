@@ -34,7 +34,7 @@
   <rect x="142.67" y="166.64" width="36.93" height="16.68" rx="8.34" fill="#2ED3B2"/>
 </g>
   <g transform="translate(419, 320)" font-family="IBM Plex Sans, Segoe UI, Helvetica, Arial, sans-serif">
-    <text x="0" y="-58" fill="#F4F6F7" font-size="62" font-weight="600" letter-spacing="-1.6">agent-browser</text>
+    <text x="0" y="-58" fill="#F4F6F7" font-size="62" font-weight="600" letter-spacing="-1.6">thinbrowser</text>
     <text x="0" y="6" fill="#2ED3B2" font-size="40" font-weight="500" letter-spacing="-0.6">37&#215; less page, same answer</text>
     <text x="0" y="62" fill="#93A1A9" font-size="26" font-weight="400">A browser an agent can actually drive. MCP, any client.</text>
     <text x="0" y="104" fill="#6B7880" font-size="21" font-family="IBM Plex Mono, ui-monospace, monospace">246,434 chars &#8594; 4,557 &#183; measured, reproducible</text>

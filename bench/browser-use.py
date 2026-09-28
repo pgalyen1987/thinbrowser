@@ -16,7 +16,7 @@ No LLM key is needed: only the DOM serialisation runs, never the agent loop.
 
 MEASURED 2026-09-25, characters, same pages as bench/compare.mjs:
 
-    page                    Playwright MCP   agent-browser   browser-use
+    page                    Playwright MCP   thinbrowser   browser-use
     example.com                        315             213           138
     developer.mozilla.org          167,609           3,307         9,350
     news.ycombinator.com            57,480           2,071        13,903

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Drive a browser the OWNER is already signed into, instead of asking them to log in again.
 //
-// WHY THIS EXISTS. agent-browser keeps its own persistent profile
-// (~/.cache/agent-browser/profile), which is right for most work but means it has no session for
+// WHY THIS EXISTS. thinbrowser keeps its own persistent profile
+// (~/.cache/thinbrowser/profile), which is right for most work but means it has no session for
 // anything the owner logged into by hand. Play Console is exactly that case: the profile had 11
 // Google cookies against 79 in ~/.cache/shared-browser, so every visit hit the sign-in wall, and
 // logging in as them is not something to automate - it needs their 2FA and their consent.
@@ -19,7 +19,7 @@
 //   node cli/attach.mjs shot <url> <out.png>      screenshot it
 import { chromium } from "playwright";
 
-const PORT = process.env.AB_CDP_PORT || 9224;
+const PORT = process.env.TB_CDP_PORT || 9224;
 
 export async function attach() {
   const browser = await chromium.connectOverCDP(`http://127.0.0.1:${PORT}`);

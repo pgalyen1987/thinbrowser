@@ -75,7 +75,7 @@ test here would have.
   whenever it straddled a boundary.
 - **`downloads({ waitSeconds })`**: a download lands after the click returns, so asking immediately
   usually found nothing.
-- **`AB_CDP` finally has a test**, which was overdue — it is the answer to every site that refuses
+- **`TB_CDP` finally has a test**, which was overdue — it is the answer to every site that refuses
   an automated browser, and it had shipped untested because it was built last.
 
 ## 0.5.1
@@ -83,8 +83,8 @@ test here would have.
 - `solve` cannot beat Cloudflare's strict mode and now says so. Measured on claude.ai: 170 seconds
   of a person clicking, headed, and again with the real Google Chrome binary — still challenged.
   Telling someone to try again wastes another three minutes on something that cannot work, so it
-  names what is happening and gives the instruction that does (`AB_CDP`).
-- `AB_CHANNEL=chrome` uses the installed Google Chrome rather than Playwright's build. Worth having
+  names what is happening and gives the instruction that does (`TB_CDP`).
+- `TB_CHANNEL=chrome` uses the installed Google Chrome rather than Playwright's build. Worth having
   for fidelity; measured, it makes no difference to bot protection, and the README says so.
 
 ## 0.5.0
@@ -115,9 +115,9 @@ test here would have.
 - **tabs**: list, switch by index or URL, close one. A link that opened a tab used to be a dead end.
 - **downloads**: saved to disk and listed. The browser discards them unless something asks, so
   "Export CSV" did nothing at all.
-- **`AB_CDP`**: attaches the whole server to a browser already running and signed in. `close`
+- **`TB_CDP`**: attaches the whole server to a browser already running and signed in. `close`
   detaches instead of shutting it down.
-- **Firefox**: `AB_BROWSER=firefox`, its own profile directory, whole suite passing.
+- **Firefox**: `TB_BROWSER=firefox`, its own profile directory, whole suite passing.
 - Diff replies after an action (`changed: +2 -2, 17 unchanged`). Measured: 1.7x cheaper across a
   click-heavy task and **nothing at all** on form filling, because `fill` already answers in twenty
   characters. `bench/session.mjs` prints both; a benchmark that only shows the flattering task is

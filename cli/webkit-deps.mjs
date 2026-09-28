@@ -124,7 +124,7 @@ try {
 if (ok) {
   console.log("WebKit launches and loads a page.");
   if (after.length) console.log(`(ldd still lists ${after.join(", ")} — optional, and evidently not needed.)`);
-  console.log("\nUse it with:  AB_BROWSER=webkit");
+  console.log("\nUse it with:  TB_BROWSER=webkit");
 } else {
   console.error(`WebKit still will not start: ${why}`);
   if (after.length) console.error(`unresolved: ${after.join(", ")}`);

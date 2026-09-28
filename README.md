@@ -1,10 +1,10 @@
-# agent-browser
+# thinbrowser
 
-[![test](https://github.com/pgalyen1987/agent-browser/actions/workflows/test.yml/badge.svg)](https://github.com/pgalyen1987/agent-browser/actions/workflows/test.yml)
+[![test](https://github.com/pgalyen1987/thinbrowser/actions/workflows/test.yml/badge.svg)](https://github.com/pgalyen1987/thinbrowser/actions/workflows/test.yml)
 
 A browser an agent can actually drive, as an MCP tool set over Playwright.
 
-[rebelstudiossoftware.com/agent-browser.html](https://rebelstudiossoftware.com/agent-browser.html)
+[rebelstudiossoftware.com/thinbrowser.html](https://rebelstudiossoftware.com/thinbrowser.html)
 
 **Measured against what Playwright's own MCP server sends a model, on five live pages: 43.5x
 smaller.** One Wikipedia article is 241,988 characters there and 3,877 here. It is also somewhat
@@ -22,20 +22,20 @@ indistinguishable from "not loaded yet".
 It is an MCP server, so it is not tied to one model or one editor — any MCP client can run it.
 
 ```
-claude mcp add agent-browser -- npx -y @rebelstudios/agent-browser
+claude mcp add thinbrowser -- npx -y @rebelstudios/thinbrowser
 ```
 
-Any other MCP client: run `npx -y @rebelstudios/agent-browser` as a stdio server.
+Any other MCP client: run `npx -y @rebelstudios/thinbrowser` as a stdio server.
 
 ```json
-{ "mcpServers": { "agent-browser": { "command": "npx", "args": ["-y", "@rebelstudios/agent-browser"] } } }
+{ "mcpServers": { "thinbrowser": { "command": "npx", "args": ["-y", "@rebelstudios/thinbrowser"] } } }
 ```
 
 As a Claude Code plugin:
 
 ```
-/plugin marketplace add pgalyen1987/agent-browser
-/plugin install agent-browser
+/plugin marketplace add pgalyen1987/thinbrowser
+/plugin install thinbrowser
 ```
 
 The first run fetches the Chromium build Playwright drives, once, and says so on stderr (never on
@@ -65,7 +65,7 @@ Each row is a thing that cost us time first, then got a tool.
 | The page as prose, not as controls | `read` strips the navigation and furniture and returns the writing, in slices for a long page. `find` returns a window **centred on** your phrase rather than whichever slice it started in. The snapshot says what you can do; this says what it says. |
 | A download goes nowhere | The browser discards downloads unless something asks for them, so "Export CSV" appeared to do nothing. They save to disk and `downloads` lists them with their paths, and `waitSeconds` waits for one to land, because a download arrives after the click returns. |
 | A bot wall is blocking a page you are allowed to see | `solve` reopens it in a **visible window** so you clear the challenge yourself, then carries on. The profile is persistent, so later runs go straight through headless. It asks the human who is already sitting there; it does not spoof anything. |
-| You are signed in, but the tool is not | `AB_CDP=9224` drives a browser that is already running and already signed in, so every tool works against that session. Closing detaches instead of shutting their browser. |
+| You are signed in, but the tool is not | `TB_CDP=9224` drives a browser that is already running and already signed in, so every tool works against that session. Closing detaches instead of shutting their browser. |
 
 Also: `fill`, `upload` (file inputs, or an Upload button that opens a chooser), `press`, `back`,
 `js` (the escape hatch), `close`. Dialogs never block a page silently: alerts are acknowledged, a
@@ -108,23 +108,23 @@ twenty characters and never had the problem. Both numbers are in the benchmark.
 
 ## Notes
 
-- One persistent profile at `~/.cache/agent-browser/profile`, so a login made once survives.
-  `AB_EPHEMERAL=1` uses a throwaway context; `AB_HEADED=1` shows the window.
-- `AB_PROFILE` and `AB_CREDS` move the profile and the credentials file.
+- One persistent profile at `~/.cache/thinbrowser/profile`, so a login made once survives.
+  `TB_EPHEMERAL=1` uses a throwaway context; `TB_HEADED=1` shows the window.
+- `TB_PROFILE` and `TB_CREDS` move the profile and the credentials file.
 - Replies name elements by their label, never by a field's value — a value can be a secret.
-- `AB_CDP=9224` (a port or a full URL) attaches to a browser already running with
+- `TB_CDP=9224` (a port or a full URL) attaches to a browser already running with
   `--remote-debugging-port=9224`, for the case where logging in is not something to automate: 2FA
   makes it impossible and doing it on someone's behalf is not the job. It opens its own page, never
   navigates theirs, and `close` detaches rather than shutting their browser. `cli/attach.mjs` does
   the same for one-off scripts outside the MCP.
-- `AB_DOWNLOADS` moves where downloads land (default `~/.cache/agent-browser/downloads`).
+- `TB_DOWNLOADS` moves where downloads land (default `~/.cache/thinbrowser/downloads`).
 - **WebKit on a distro that is not Ubuntu 24.04:** `npx playwright install-deps webkit` fails on
   Kali and Debian testing, because it apt-gets Ubuntu package names that do not exist there
   (`libicu74`, `libjpeg-turbo8`). `node cli/webkit-deps.mjs` fetches just the shared objects WebKit
   actually links and puts them in the bundle's own lib directory — no sudo, nothing outside
   `~/.cache`, and your system ICU untouched. Symlinking a newer ICU does not work: its symbols carry
   the major version, so the library loads and every symbol is missing.
-- `AB_CHANNEL=chrome` uses the installed Google Chrome instead of the Chromium build Playwright
+- `TB_CHANNEL=chrome` uses the installed Google Chrome instead of the Chromium build Playwright
   ships — closer to what a visitor really runs. It does not get you past strict bot protection;
   measured, it makes no difference there.
 - `npm test` runs the fixtures in `test/`: compactness, stable refs, forms, secrets, overlays, the
@@ -137,10 +137,10 @@ twenty characters and never had the problem. Both numbers are in the benchmark.
 
 ## Limits, so they are not a surprise
 
-- WebKit is not tested. Chromium and Firefox are; `AB_BROWSER=firefox` switches engine, and the
+- WebKit is not tested. Chromium and Firefox are; `TB_BROWSER=firefox` switches engine, and the
   whole browser suite passes on both.
 - Frames are collected up to eight deep in document order; an ad-heavy page with dozens is capped.
-- All three engines pass the whole browser suite: Chromium, Firefox and WebKit. `AB_BROWSER` picks
+- All three engines pass the whole browser suite: Chromium, Firefox and WebKit. `TB_BROWSER` picks
   one, and each keeps its own profile directory.
 - `snapshot` describes interactive elements and headings. It is not a reader for prose-heavy pages —
   use `js` for that.
@@ -163,7 +163,7 @@ sight and loop the challenge forever, headed or not, with Playwright's Chromium 
 Chrome binary. No amount of clicking clears it, because the question is not being asked of you.
 
 For those, the answer is a browser **this tool did not launch**: start Chrome yourself with
-`--remote-debugging-port=9224`, then run with `AB_CDP=9224`. The site has already cleared that
+`--remote-debugging-port=9224`, then run with `TB_CDP=9224`. The site has already cleared that
 session, so there is nothing to solve. `solve` says so rather than letting you keep clicking.
 
 What it will not do is *pretend*: spoofing a fingerprint is a race lost on the next update, it
@@ -180,15 +180,15 @@ point it at. Specifically:
   client asked. Whatever is on the page — including personal data — reaches your model the same way
   anything else you paste does. Nothing about the page is kept by this tool beyond the browser
   profile below.
-- **The browser profile** at `~/.cache/agent-browser/profile` (one per engine). Cookies, local
-  storage and logins, exactly as any browser keeps them, on your machine. `AB_EPHEMERAL=1` throws it
+- **The browser profile** at `~/.cache/thinbrowser/profile` (one per engine). Cookies, local
+  storage and logins, exactly as any browser keeps them, on your machine. `TB_EPHEMERAL=1` throws it
   away each run; deleting the directory signs everything out.
 - **Credentials.** `fill_secret` reads a named value from your credentials file
-  (`~/.config/rebel-studios/creds.env` by default, `AB_CREDS` to move it) and types it into the
+  (`~/.config/rebel-studios/creds.env` by default, `TB_CREDS` to move it) and types it into the
   page. **The value never appears in the tool's reply**, and later snapshots show the field as
   `(secret)` rather than its contents — there is a test that fails if it ever leaks. The file is
   read, never written, and never sent anywhere but the page you directed it to.
-- **Downloads** land in `~/.cache/agent-browser/downloads` (`AB_DOWNLOADS` to move it) and stay
+- **Downloads** land in `~/.cache/thinbrowser/downloads` (`TB_DOWNLOADS` to move it) and stay
   there until you remove them.
 - **Screenshots** are returned inline to your client, and written to disk only when you pass a path.
 

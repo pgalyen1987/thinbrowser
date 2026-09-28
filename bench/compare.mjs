@@ -73,7 +73,7 @@ for (const url of urls) {
 await browser.close();
 
 // ── route B: this tool, exactly as a caller gets it ───────────────────────────────────────────
-process.env.AB_EPHEMERAL = "1"; // a throwaway profile, so no saved login or cache skews it
+process.env.TB_EPHEMERAL = "1"; // a throwaway profile, so no saved login or cache skews it
 for (const row of rows) {
   const url = urls[rows.indexOf(row)];
   const t0 = Date.now();

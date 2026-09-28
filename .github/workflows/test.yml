@@ -31,7 +31,7 @@ jobs:
       - run: npm ci
       - name: install the browser under test
         run: npx playwright install --with-deps ${{ matrix.browser }}
-      # CDP is a Chromium protocol: test/cdp.test.mjs launches a Chromium whatever AB_BROWSER says,
+      # CDP is a Chromium protocol: test/cdp.test.mjs launches a Chromium whatever TB_BROWSER says,
       # so the firefox job needs one too. Without it those four tests fail on a missing binary and
       # look like a bug in the feature.
       - name: chromium as well, for the CDP tests
@@ -40,7 +40,7 @@ jobs:
       - name: test
         run: npm test
         env:
-          AB_BROWSER: ${{ matrix.browser }}
+          TB_BROWSER: ${{ matrix.browser }}
 
   # WebKit is separate because on a runner it needs its own system libraries, and because the
   # interesting question there is whether cli/webkit-deps.mjs still works — that script exists for
@@ -60,7 +60,7 @@ jobs:
         run: node cli/webkit-deps.mjs || true
       - run: npm test
         env:
-          AB_BROWSER: webkit
+          TB_BROWSER: webkit
 
   benchmark:
     # Only on the schedule and by hand: it drives five live public pages, and doing that on every

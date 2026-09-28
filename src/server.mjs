@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// agent-browser: an MCP server that drives Chromium for an agent. Every answer is a compact snapshot
+// thinbrowser: an MCP server that drives Chromium for an agent. Every answer is a compact snapshot
 // or a sentence about what happened, never a whole-page accessibility dump.
 //
-//   claude mcp add agent-browser -- node ~/agent-browser/src/server.mjs
+//   claude mcp add thinbrowser -- node ~/thinbrowser/src/server.mjs
 //
-// AB_HEADED=1 shows the window; AB_EPHEMERAL=1 skips the saved profile (~/.cache/agent-browser).
+// TB_HEADED=1 shows the window; TB_EPHEMERAL=1 skips the saved profile (~/.cache/thinbrowser).
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
@@ -31,11 +31,11 @@ const LOADED = readVersion();
 function staleness() {
   const onDisk = readVersion();
   return onDisk && LOADED && onDisk !== LOADED
-    ? `note: this server is running agent-browser ${LOADED} but ${onDisk} is installed — restart your MCP client to pick it up.\n\n`
+    ? `note: this server is running thinbrowser ${LOADED} but ${onDisk} is installed — restart your MCP client to pick it up.\n\n`
     : "";
 }
 
-const server = new McpServer({ name: "agent-browser", version: LOADED ?? "0.0.0" });
+const server = new McpServer({ name: "thinbrowser", version: LOADED ?? "0.0.0" });
 const text = (s) => ({ content: [{ type: "text", text: String(s) }] });
 const safe = (fn) => async (args) => {
   try { return text(staleness() + (await fn(args || {}))); } catch (e) { return { ...text(`error: ${String(e.message || e).split("\n")[0]}`), isError: true }; }

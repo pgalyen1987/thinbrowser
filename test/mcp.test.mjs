@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 
 test("tools are listed and open/click answer in text", async () => {
-  const transport = new StdioClientTransport({ command: process.execPath, args: [join(import.meta.dirname, "../src/server.mjs")], env: { ...process.env, AB_EPHEMERAL: "1" } });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [join(import.meta.dirname, "../src/server.mjs")], env: { ...process.env, TB_EPHEMERAL: "1" } });
   const client = new Client({ name: "test", version: "0" });
   await client.connect(transport);
   try {
@@ -33,7 +33,7 @@ test("tools are listed and open/click answer in text", async () => {
 test("a server outlived by its own package says so", async () => {
   const pkg = join(import.meta.dirname, "../package.json");
   const original = readFileSync(pkg, "utf8");
-  const transport = new StdioClientTransport({ command: process.execPath, args: [join(import.meta.dirname, "../src/server.mjs")], env: { ...process.env, AB_EPHEMERAL: "1" } });
+  const transport = new StdioClientTransport({ command: process.execPath, args: [join(import.meta.dirname, "../src/server.mjs")], env: { ...process.env, TB_EPHEMERAL: "1" } });
   const client = new Client({ name: "test", version: "0" });
   await client.connect(transport);
   try {

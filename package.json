@@ -1,10 +1,10 @@
 {
-  "name": "@rebelstudios/agent-browser",
+  "name": "@rebelstudios/thinbrowser",
   "version": "0.7.2",
   "description": "A browser an agent can actually drive: compact snapshots, overlay-proof clicks, secret-safe fills, and the console and network log.",
   "type": "module",
   "bin": {
-    "agent-browser": "cli/mcp.mjs"
+    "thinbrowser": "cli/mcp.mjs"
   },
   "scripts": {
     "test": "node --test --test-timeout=180000 test/*.test.mjs",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/pgalyen1987/agent-browser.git"
+    "url": "git+https://github.com/pgalyen1987/thinbrowser.git"
   },
   "keywords": [
     "mcp",
@@ -48,5 +48,5 @@
     "skills",
     "src"
   ],
-  "homepage": "https://rebelstudiossoftware.com/agent-browser.html"
+  "homepage": "https://rebelstudiossoftware.com/thinbrowser.html"
 }
