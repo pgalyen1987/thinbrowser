@@ -497,7 +497,7 @@ async function settle(p, ms = 2000) {
     // 250ms since the last DOM change AND since the last request STARTED. Both are timestamps,
     // so neither can get stuck the way a counter does; a page with a heartbeat settles between
     // beats instead of never settling at all.
-    if (quiet >= 250 && Date.now() - lastReq >= 250) return;
+    if (quiet >= 200 && Date.now() - lastReq >= 200) return;
     await p.waitForTimeout(40);
   }
 }

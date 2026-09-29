@@ -9,8 +9,7 @@ Two comparisons, both real, kept separate on purpose:
   ability to act. Reproducible: `bench/tasks.mjs`, `bench/vercel.mjs`.
 - **vs Playwright's own MCP server** (the default an agent is handed): ~**43.5x smaller**.
 
-NOT faster — this run was 5.8s vs Vercel's 5.1s. Do not claim a speed win; the size + task-coverage
-figures are the ones to stand behind.
+About as fast after the 2026-09-29 settle trim (~parity, thinbrowser waits for dynamic content so it stays marginally behind on some pages). Stand behind size + task coverage, not a speed win.
 
 ---
 
@@ -39,8 +38,7 @@ value Y — scored for coverage next to size. On five live pages:
   its a11y snapshot omits example.com's page heading.)
 
 Honest caveats: the size win is from returning *less*, which is easy — the benchmark exists so you
-can check it doesn't come at the cost of task coverage. It is **not** faster (5.8s vs 5.1s this
-run). MIT, Node 20+, works as an MCP server or a CLI.
+can check it doesn't come at the cost of task coverage. It is about as fast (a settle-time trim on 2026-09-29 brought it to ~parity; do not claim a speed win). MIT, Node 20+, works as an MCP server or a CLI.
 
 Install: `claude mcp add thinbrowser -- npx -y thinbrowser`
 Repo + benchmarks: https://github.com/pgalyen1987/thinbrowser
