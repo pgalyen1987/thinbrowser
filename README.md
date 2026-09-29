@@ -7,9 +7,7 @@ A browser an agent can actually drive, as an MCP tool set over Playwright.
 [rebelstudiossoftware.com/thinbrowser.html](https://rebelstudiossoftware.com/thinbrowser.html)
 
 **Measured against what Playwright's own MCP server sends a model, on five live pages: 43.5x
-smaller.** One Wikipedia article is 241,988 characters there and 3,877 here. It is also somewhat
-faster — 1.4x to 1.7x across runs — but that half depends on the network and does not reproduce to
-a fixed number, so the size figure is the one to hold us to. Run `npm run bench` and check it
+smaller.** One Wikipedia article is 241,988 characters there and 3,877 here. Speed is about on par and swings with the network, so the size figure — not speed — is the one to hold us to. Run `npm run bench` and check it
 yourself — that is what the benchmark is for.
 
 Playwright was built to test pages you wrote, where you already know the selectors. An agent is
@@ -22,13 +20,13 @@ indistinguishable from "not loaded yet".
 It is an MCP server, so it is not tied to one model or one editor — any MCP client can run it.
 
 ```
-claude mcp add thinbrowser -- npx -y @rebelstudios/thinbrowser
+claude mcp add thinbrowser -- npx -y thinbrowser
 ```
 
-Any other MCP client: run `npx -y @rebelstudios/thinbrowser` as a stdio server.
+Any other MCP client: run `npx -y thinbrowser` as a stdio server.
 
 ```json
-{ "mcpServers": { "thinbrowser": { "command": "npx", "args": ["-y", "@rebelstudios/thinbrowser"] } } }
+{ "mcpServers": { "thinbrowser": { "command": "npx", "args": ["-y", "thinbrowser"] } } }
 ```
 
 As a Claude Code plugin:
@@ -81,6 +79,8 @@ settled it, and it is what settled that the fix had worked.
 Source tells you what a page might do. The network log tells you what it did.
 
 ## How it compares, including where it loses
+
+Against **vercel-labs/agent-browser** (the closest tool, 43k stars) it is ~**28x smaller** across five live pages and completes **10/10** of the same agent tasks to its 9/10 — the compaction costs no ability to act. The task benchmark is `bench/tasks.mjs` (a dropped element scores as a miss on either tool, so it is honest).
 
 Against Playwright's MCP server — the default an agent is handed — it is **43.5x smaller** across
 five live pages. That number is large because Playwright's format is verbose, not because this is
