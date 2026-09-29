@@ -56,6 +56,7 @@ Each row is a thing that cost us time first, then got a tool.
 | A screenshot you cannot see | `screenshot` returns the image itself, so looking at a page is one call rather than save-then-read. |
 | You cannot tell what a page really did | `console` gives its errors, warnings and uncaught exceptions. `network` gives its requests, with `failed`, `thirdParty` and `match` filters. Both scoped to the current page. |
 | You need why an element won't click, or how the page performs | `inspect` gives one element's box, the computed styles that decide if it's visible/clickable, its attributes, and whether something covers it (why a click may miss). `metrics` gives the page's timing and Core Web Vitals — TTFB, FCP, LCP, CLS — plus its request count and bytes. |
+| You need to replay or tweak a request and read the raw response | `request` sends an HTTP call (method, url, headers, body) with the browser's live session and returns status, headers and body — the repeater. For endpoints you are authorised to test. |
 | Auth expiry shows up as a redirect | Snapshots start with `auth: this looks like a login page` when the page is one. |
 | A bot wall snapshots like an empty site | A challenge or block page is named — `blocked: this is an interstitial bot check (Cloudflare)` — instead of coming back as a page with nothing on it. It reports the wall; it does not get around one. |
 | Wizards need "Next" found by hand every step | `next` presses the page's forward button, preferring one inside a form or dialog. |

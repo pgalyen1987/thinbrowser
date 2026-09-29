@@ -1129,3 +1129,25 @@ export async function metrics() {
     `CLS ${m.cls == null ? "n/a" : m.cls} · ${m.requests} requests · ${m.transferKB} KB transferred`,
   ].join("\n");
 }
+
+
+/**
+ * The "repeater": send an HTTP request with the browser's CURRENT session and cookies, and return
+ * the raw response — status, headers, body. Replay a request the page made, or tweak one (change a
+ * param, a header, the method) and read exactly what the server sends back, without going through
+ * the DOM. Uses the live context, so anything you're signed into, this is signed into too. For
+ * testing endpoints you are authorised to test.
+ */
+export async function request(method, url, { headers = {}, body } = {}) {
+  const p = await session();
+  const opts = { method: String(method || "GET").toUpperCase(), headers, timeout: 30000, failOnStatusCode: false, maxRedirects: 5 };
+  if (body != null && opts.method !== "GET" && opts.method !== "HEAD") opts.data = body;
+  let r;
+  try { r = await p.context().request.fetch(url, opts); }
+  catch (e) { return `request failed: ${String(e.message).split("\n")[0]}`; }
+  const hdrs = r.headers();
+  let text = ""; try { text = await r.text(); } catch { text = "(binary or unreadable body)"; }
+  const bodyOut = text.length > 3000 ? text.slice(0, 3000) + `\n…(${text.length} bytes total)` : text;
+  const hdrLines = Object.entries(hdrs).slice(0, 30).map(([k, v]) => `${k}: ${v}`).join("\n");
+  return `${opts.method} ${url}\n→ ${r.status()} ${r.statusText() || ""}\n${hdrLines}\n\n${bodyOut}`.trim();
+}

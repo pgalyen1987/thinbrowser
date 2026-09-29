@@ -79,7 +79,7 @@ test("the server lists every tool the README promises", async () => {
   const { tools } = await send("tools/list");
   const names = tools.map((t) => t.name).sort();
   const promised = ["back", "click", "close", "console", "downloads", "fill", "fill_secret",
-    "inspect", "js", "metrics", "network", "next", "open", "press", "read", "screenshot", "select",
+    "inspect", "js", "metrics", "network", "request", "next", "open", "press", "read", "screenshot", "select",
     "snapshot", "solve", "tabs", "upload", "wait"].sort();
   assert.deepEqual(names, promised);
   // Every tool needs a description: it is what a model reads to decide whether to call it.

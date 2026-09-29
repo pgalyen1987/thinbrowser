@@ -139,6 +139,11 @@ server.registerTool("metrics", {
   inputSchema: {},
 }, safe(() => b.metrics()));
 
+server.registerTool("request", {
+  description: "The repeater: send an HTTP request (method, url, headers, body) using the browser's current session and cookies, and return the raw response — status, headers, body. Replay or tweak a request and read exactly what the server returns, without going through the DOM. For endpoints you are authorised to test.",
+  inputSchema: { url: z.string(), method: z.string().optional(), headers: z.record(z.string()).optional(), body: z.string().optional() },
+}, safe(({ url, method, headers, body }) => b.request(method, url, { headers, body })));
+
 server.registerTool("solve", {
   description: "A bot wall is blocking the page: reopen it in a VISIBLE window so the person at the keyboard can clear the challenge themselves, then carry on. The profile is persistent, so later runs go straight through. This does not defeat or spoof anything — it asks the human who is already there.",
   inputSchema: { seconds: z.number().optional().describe("how long to wait for them (default 180)") },
