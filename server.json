@@ -10,7 +10,7 @@
   "packages": [
     {
       "registryType": "npm",
-      "identifier": "@rebelstudios/thinbrowser",
+      "identifier": "thinbrowser",
       "version": "0.7.2",
       "transport": {
         "type": "stdio"

@@ -1,6 +1,6 @@
 {
-  "name": "@rebelstudios/thinbrowser",
-  "version": "0.7.2",
+  "name": "thinbrowser",
+  "version": "0.8.0",
   "description": "A browser an agent can actually drive: compact snapshots, overlay-proof clicks, secret-safe fills, and the console and network log.",
   "type": "module",
   "bin": {

@@ -20,7 +20,7 @@ const say = (s) => process.stderr.write(`thinbrowser: ${s}\n`);
 
 // RESOLVED, NOT LOOKED FOR ON DISK. An earlier version checked for <root>/node_modules/<pkg>, which
 // is wrong for the normal case: npm HOISTS dependencies to the top-level node_modules of the
-// installing project, so a perfectly good `npm install @rebelstudios/thinbrowser` left that path
+// installing project, so a perfectly good `npm install thinbrowser` left that path
 // empty and the launcher re-installed 96 packages it already had, on every first run. Ask the
 // resolver the question the runtime will actually ask.
 const needed = ["@modelcontextprotocol/sdk/server/mcp.js", "playwright"];
