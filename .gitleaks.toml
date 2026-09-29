@@ -1,0 +1,11 @@
+title = "thinbrowser gitleaks config"
+
+# Use gitleaks' built-in rules, plus the allowlist below.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Smoke-test fixture only. An obviously fake API key ('sk-smoke-secret-1234') is written to a throwaway temp file to exercise the fill_secret flow in test/smoke.test.mjs. Not a real credential."
+regexes = [
+  '''sk-smoke-secret-1234''',
+]
