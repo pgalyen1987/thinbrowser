@@ -40,6 +40,8 @@ value Y — scored for coverage next to size. On five live pages:
 Honest caveats: the size win is from returning *less*, which is easy — the benchmark exists so you
 can check it doesn't come at the cost of task coverage. It is about as fast (a settle-time trim on 2026-09-29 brought it to ~parity; do not claim a speed win). MIT, Node 20+, works as an MCP server or a CLI.
 
+It also hands the agent the browser's **DevTools**, which a snapshot can't: `console` (errors/warnings), `network` (requests, third-party trackers, failures), `inspect` (an element's box, computed styles, and whether something covers it — the “why won't my click land” answer), `metrics` (TTFB/FCP/LCP/CLS), and `request` — a repeater to replay or tweak an HTTP call with the live session and read the raw response. So an agent can *debug* a page, not just read it.
+
 Install: `claude mcp add thinbrowser -- npx -y thinbrowser`
 Repo + benchmarks: https://github.com/pgalyen1987/thinbrowser
 
@@ -57,8 +59,7 @@ Happy to run the benchmark against any page or task you throw at it in the comme
 Feeding an AI agent a full page snapshot wastes thousands of tokens. thinbrowser returns a compact
 snapshot — headings, forms, and interactive elements with stable refs, plus a short run of text —
 that's ~28x smaller than vercel-labs/agent-browser across five live pages, while completing 10/10 of
-the same agent tasks (it 9/10). Free, MIT, MCP server or CLI. The task benchmark is in the repo so
-you can check the smaller snapshot still works.
+the same agent tasks (it 9/10). Free, MIT, MCP server or CLI. Beyond snapshots it gives the agent the browser's DevTools — console, network, element inspection, performance/Web Vitals, and an HTTP repeater — so it can debug a page, not just read it. The task benchmark is in the repo so you can check the smaller snapshot still works.
 
 **First comment (maker's note):**
 Hi PH — I made this because every agent I built spent most of its context budget re-reading pages.
