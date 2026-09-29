@@ -129,6 +129,16 @@ server.registerTool("network", {
   inputSchema: { failed: z.boolean().optional(), thirdParty: z.boolean().optional(), match: z.string().optional(), limit: z.number().int().optional() },
 }, safe((o) => b.network(o)));
 
+server.registerTool("inspect", {
+  description: "DevTools Elements for one element: its box, the computed styles that decide whether it's visible and clickable, its attributes, and whether something is on top of it (why a click may miss). target is a ref (e12) or a description.",
+  inputSchema: { target },
+}, safe(({ target }) => b.inspect(target)));
+
+server.registerTool("metrics", {
+  description: "DevTools Performance for the current page: TTFB, FCP, LCP, DOMContentLoaded, load, CLS, request count and KB transferred. Web Vitals are captured live from navigation.",
+  inputSchema: {},
+}, safe(() => b.metrics()));
+
 server.registerTool("solve", {
   description: "A bot wall is blocking the page: reopen it in a VISIBLE window so the person at the keyboard can clear the challenge themselves, then carry on. The profile is persistent, so later runs go straight through. This does not defeat or spoof anything — it asks the human who is already there.",
   inputSchema: { seconds: z.number().optional().describe("how long to wait for them (default 180)") },

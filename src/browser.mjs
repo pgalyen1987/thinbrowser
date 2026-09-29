@@ -195,6 +195,13 @@ function watch(p) {
   p.addInitScript(() => {
     window.__abMut = Date.now();
     new MutationObserver(() => { window.__abMut = Date.now(); }).observe(document, { subtree: true, childList: true, attributes: true, characterData: true });
+    // Core Web Vitals need an observer running from the start; captured here so metrics() can read
+    // them on demand (LCP and CLS are lifecycle measurements, not available after the fact).
+    window.__abVitals = { lcp: 0, cls: 0 };
+    try {
+      new PerformanceObserver((l) => { for (const e of l.getEntries()) window.__abVitals.lcp = Math.round(e.startTime); }).observe({ type: "largest-contentful-paint", buffered: true });
+      new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) window.__abVitals.cls += e.value; }).observe({ type: "layout-shift", buffered: true });
+    } catch (e) { /* older engines: vitals stay 0 */ }
   }).catch(() => {});
 }
 
@@ -1054,4 +1061,71 @@ export async function js(code) {
   const v = await p.evaluate(code).catch((e) => `error: ${e.message.split("\n")[0]}`);
   const s = typeof v === "string" ? v : JSON.stringify(v);
   return (s ?? "undefined").slice(0, 4000);
+}
+
+
+/**
+ * DevTools "Elements" for one element: its box, the computed styles that decide whether it can be
+ * seen and clicked, its attributes, and — the thing a snapshot cannot answer — whether something is
+ * on top of it. `target` is a ref or description, same as click/locate.
+ */
+export async function inspect(target) {
+  const loc = await locate(target);
+  if (!loc || !(await loc.count().catch(() => 0))) return `no element matches ${JSON.stringify(String(target))}`;
+  const info = await loc.first().evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    const cs = getComputedStyle(el);
+    const keys = ["display", "position", "visibility", "opacity", "z-index", "color", "background-color", "font-size", "font-weight", "cursor", "pointer-events", "overflow"];
+    const computed = {}; for (const k of keys) { const v = cs.getPropertyValue(k); if (v) computed[k] = v; }
+    const attrs = {}; for (const a of el.attributes) attrs[a.name] = a.value.length > 120 ? a.value.slice(0, 120) + "…" : a.value;
+    let covered = null;
+    if (r.width && r.height) {
+      const top = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+      if (top && top !== el && !el.contains(top) && !top.contains(el))
+        covered = top.tagName.toLowerCase() + (top.id ? "#" + top.id : "") + (typeof top.className === "string" && top.className ? "." + top.className.trim().split(/\s+/)[0] : "");
+    }
+    return {
+      tag: el.tagName.toLowerCase(),
+      text: (el.innerText || el.value || "").replace(/\s+/g, " ").trim().slice(0, 120),
+      box: { x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height) },
+      inViewport: r.top < innerHeight && r.bottom > 0 && r.left < innerWidth && r.right > 0,
+      computed, attrs, covered,
+    };
+  }).catch((e) => ({ error: e.message.split("\n")[0] }));
+  if (info.error) return `could not inspect: ${info.error}`;
+  return [
+    `<${info.tag}>${info.text ? ` "${info.text}"` : ""}`,
+    `box: ${info.box.w}×${info.box.h} at (${info.box.x},${info.box.y})${info.inViewport ? "" : "  — OFF-SCREEN"}`,
+    info.covered ? `⚠ covered by <${info.covered}> at its centre — a click may hit that instead` : "not covered at its centre",
+    "computed: " + Object.entries(info.computed).map(([k, v]) => `${k}:${v}`).join("; "),
+    "attributes: " + (Object.keys(info.attrs).length ? Object.entries(info.attrs).map(([k, v]) => `${k}="${v}"`).join(" ") : "(none)"),
+  ].join("\n");
+}
+
+/**
+ * DevTools "Performance" in one call: navigation timing, first paint, Core Web Vitals (LCP/CLS,
+ * captured live since navigation) and the weight of the page (request count + bytes transferred).
+ */
+export async function metrics() {
+  const p = await session();
+  const m = await p.evaluate(() => {
+    const nav = performance.getEntriesByType("navigation")[0] || {};
+    const fcp = (performance.getEntriesByType("paint").find((e) => e.name === "first-contentful-paint") || {}).startTime;
+    const res = performance.getEntriesByType("resource");
+    const bytes = res.reduce((a, x) => a + (x.transferSize || 0), 0);
+    const v = window.__abVitals || {};
+    const ms = (x) => (x ? Math.round(x) : null);
+    return {
+      ttfb: ms(nav.responseStart), fcp: ms(fcp), lcp: v.lcp || null,
+      domContentLoaded: ms(nav.domContentLoadedEventEnd), load: ms(nav.loadEventEnd),
+      cls: v.cls != null ? Math.round(v.cls * 1000) / 1000 : null,
+      requests: res.length, transferKB: Math.round(bytes / 1024),
+    };
+  }).catch((e) => ({ error: e.message.split("\n")[0] }));
+  if (m.error) return `could not read metrics: ${m.error}`;
+  const t = (x) => (x == null ? "n/a" : `${x}ms`);
+  return [
+    `TTFB ${t(m.ttfb)} · FCP ${t(m.fcp)} · LCP ${t(m.lcp)} · DOMContentLoaded ${t(m.domContentLoaded)} · load ${t(m.load)}`,
+    `CLS ${m.cls == null ? "n/a" : m.cls} · ${m.requests} requests · ${m.transferKB} KB transferred`,
+  ].join("\n");
 }
